@@ -4562,8 +4562,21 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
 const tc = __importStar(__webpack_require__(533));
+const exec = __importStar(__webpack_require__(986));
+const io = __importStar(__webpack_require__(1));
 const path = __importStar(__webpack_require__(622));
 function getSwift(version, platform) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (platform === 'osx') {
+            getSwiftMacOS(version, platform);
+        }
+        else {
+            getSwiftLinux(version, platform);
+        }
+    });
+}
+exports.getSwift = getSwift;
+function getSwiftLinux(version, platform) {
     return __awaiter(this, void 0, void 0, function* () {
         const swiftBranch = `swift-${version}-release`;
         const swiftVersion = `swift-${version}-RELEASE`;
@@ -4577,8 +4590,7 @@ function getSwift(version, platform) {
             const swiftUrl = `https://swift.org/builds/${swiftBranch}/${platform.replace(re, '')}/${swiftVersion}/${swiftVersion}-${platform}.tar.gz`;
             const swiftArchive = yield tc.downloadTool(swiftUrl);
             let swiftDirectory = yield tc.extractTar(swiftArchive, undefined, 'xpz');
-            const folderName = `${swiftVersion}-${platform}`;
-            swiftDirectory = path.join(swiftDirectory, folderName);
+            swiftDirectory = path.join(swiftDirectory, `${swiftVersion}-${platform}`);
             core.debug(`Swift extracted to ${swiftDirectory}`);
             toolPath = yield tc.cacheDir(swiftDirectory, 'Swift', version, platform);
         }
@@ -4586,7 +4598,42 @@ function getSwift(version, platform) {
         core.addPath(swiftBin);
     });
 }
-exports.getSwift = getSwift;
+function getSwiftMacOS(version, platform) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const swiftBranch = `swift-${version}-release`;
+        const swiftVersion = `swift-${version}-RELEASE`;
+        let toolPath = tc.find('Swift', version, platform);
+        if (toolPath) {
+            core.debug(`Tool found in cache ${toolPath}`);
+        }
+        else {
+            core.debug('Downloading Swift');
+            const swiftURL = `https://swift.org/builds/${swiftBranch}/xcode/${swiftVersion}/${swiftVersion}-osx.pkg`;
+            const swiftPkg = yield tc.downloadTool(swiftURL);
+            yield exec.exec('xar', ['-xf', swiftPkg]);
+            const swiftDirectoryName = `${swiftVersion}-osx-package.pkg}`;
+            const swiftPayload = path.join(path.dirname(swiftPkg), swiftDirectoryName, 'Payload');
+            const toolchain = `/Library/Developer/Toolchains/${swiftVersion}.xctoolchain`;
+            yield io.mkdirP(toolchain);
+            const swiftDirectory = yield tc.extractTar(swiftPayload, toolchain);
+            toolPath = yield tc.cacheDir(swiftDirectory, 'Swift', version, 'osx');
+        }
+        let stdOut = '';
+        const options = {
+            listeners: {
+                stdout: (data) => {
+                    stdOut += data.toString();
+                }
+            }
+        };
+        yield exec.exec('/usr/libexec/PlistBuddy', [
+            '-c',
+            '"Print CFBundleIdentifier:"',
+            '/Library/Developer/Toolchains/swift-4.0-RELEASE.xctoolchain/Info.plist'
+        ], options);
+        core.exportVariable('TOOLCHAINS', stdOut);
+    });
+}
 
 
 /***/ }),

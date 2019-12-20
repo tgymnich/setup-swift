@@ -12,7 +12,7 @@ inputs:
   platform:
     description: 'Platform'
     required: true
-    default: 'ubuntu18.04'
+    default: 'osx'
 runs:
   using: 'node12'
   main: 'dist/index.js'

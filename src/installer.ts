@@ -1,11 +1,21 @@
 import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
+import * as exec from '@actions/exec'
+import * as io from '@actions/io'
 import * as path from 'path'
 
 export async function getSwift(
   version: string,
   platform: string
 ): Promise<void> {
+  if (platform === 'osx') {
+    getSwiftMacOS(version, platform)
+  } else {
+    getSwiftLinux(version, platform)
+  }
+}
+
+async function getSwiftLinux(version: string, platform: string): Promise<void> {
   const swiftBranch = `swift-${version}-release`
   const swiftVersion = `swift-${version}-RELEASE`
   let toolPath = tc.find('Swift', version, platform)
@@ -21,8 +31,7 @@ export async function getSwift(
     )}/${swiftVersion}/${swiftVersion}-${platform}.tar.gz`
     const swiftArchive: string = await tc.downloadTool(swiftUrl)
     let swiftDirectory = await tc.extractTar(swiftArchive, undefined, 'xpz')
-    const folderName = `${swiftVersion}-${platform}`
-    swiftDirectory = path.join(swiftDirectory, folderName)
+    swiftDirectory = path.join(swiftDirectory, `${swiftVersion}-${platform}`)
 
     core.debug(`Swift extracted to ${swiftDirectory}`)
     toolPath = await tc.cacheDir(swiftDirectory, 'Swift', version, platform)
@@ -31,4 +40,53 @@ export async function getSwift(
   const swiftBin = path.join(toolPath, 'usr', 'bin')
 
   core.addPath(swiftBin)
+}
+
+async function getSwiftMacOS(version: string, platform: string): Promise<void> {
+  const swiftBranch = `swift-${version}-release`
+  const swiftVersion = `swift-${version}-RELEASE`
+
+  let toolPath = tc.find('Swift', version, platform)
+
+  if (toolPath) {
+    core.debug(`Tool found in cache ${toolPath}`)
+  } else {
+    core.debug('Downloading Swift')
+
+    const swiftURL = `https://swift.org/builds/${swiftBranch}/xcode/${swiftVersion}/${swiftVersion}-osx.pkg`
+    const swiftPkg: string = await tc.downloadTool(swiftURL)
+    await exec.exec('xar', ['-xf', swiftPkg])
+    const swiftDirectoryName = `${swiftVersion}-osx-package.pkg}`
+    const swiftPayload = path.join(
+      path.dirname(swiftPkg),
+      swiftDirectoryName,
+      'Payload'
+    )
+    const toolchain = `/Library/Developer/Toolchains/${swiftVersion}.xctoolchain`
+    await io.mkdirP(toolchain)
+    const swiftDirectory = await tc.extractTar(swiftPayload, toolchain)
+    toolPath = await tc.cacheDir(swiftDirectory, 'Swift', version, 'osx')
+  }
+
+  let stdOut = ''
+
+  const options = {
+    listeners: {
+      stdout: (data: Buffer) => {
+        stdOut += data.toString()
+      }
+    }
+  }
+
+  await exec.exec(
+    '/usr/libexec/PlistBuddy',
+    [
+      '-c',
+      '"Print CFBundleIdentifier:"',
+      '/Library/Developer/Toolchains/swift-4.0-RELEASE.xctoolchain/Info.plist'
+    ],
+    options
+  )
+
+  core.exportVariable('TOOLCHAINS', stdOut)
 }
