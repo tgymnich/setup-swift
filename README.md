@@ -12,7 +12,7 @@ Basic:
 ```yaml
 steps:
 - uses: actions/checkout@latest
-- uses: TG908/setup-swift@v1
+- uses: TG908/setup-swift@v0
   with:
     version: '5.1.3'
     platform: 'ubuntu18.04'
