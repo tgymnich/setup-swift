@@ -23,3 +23,10 @@ jobs:
         version: '5.1.3'
         platform: 'ubuntu18.04'
     - run: swift --version
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: TG908/publish-github-action@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
