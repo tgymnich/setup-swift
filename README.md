@@ -2,7 +2,7 @@
 
 This action sets up a swift environment for use in actions by:
 
-- optionally downloading and caching a version of swift by version and adding to PATH. Downloads from [](https://swift.org).
+- optionally downloading and caching a version of swift by version and adding to PATH.
 
 # Usage
 
