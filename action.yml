@@ -1,10 +1,18 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Setup Swift environment'
+description: 'Setup a Swift environment'
+author: 'TG908'
+branding:
+  icon: 'chevrons-right'
+  color: 'orange'
 inputs:
-  myInput:              # change this
-    description: 'input description here'
-    default: 'default value if applicable'
+  version:
+    description: 'Swift version to use.'
+    required: true
+    default: '5.1.3'
+  platform:
+    description: 'Platform'
+    required: true
+    default: 'ubuntu18.04'
 runs:
   using: 'node12'
   main: 'dist/index.js'
