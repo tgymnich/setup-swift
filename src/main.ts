@@ -4,9 +4,8 @@ import * as installer from './installer'
 async function run(): Promise<void> {
   try {
     const version = core.getInput('version')
-    const platform = core.getInput('platform')
 
-    await installer.getSwift(version, platform)
+    await installer.getSwift(version)
   } catch (error) {
     core.setFailed(error.message)
   }

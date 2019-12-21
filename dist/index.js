@@ -1253,8 +1253,7 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const version = core.getInput('version');
-            const platform = core.getInput('platform');
-            yield installer.getSwift(version, platform);
+            yield installer.getSwift(version);
         }
         catch (error) {
             core.setFailed(error.message);
@@ -4565,13 +4564,14 @@ const tc = __importStar(__webpack_require__(533));
 const exec = __importStar(__webpack_require__(986));
 const io = __importStar(__webpack_require__(1));
 const path = __importStar(__webpack_require__(622));
-function getSwift(version, platform) {
+function getSwift(version) {
     return __awaiter(this, void 0, void 0, function* () {
+        // determine os
         if (process.platform === 'darwin') {
-            return getSwiftMacOS(version, platform);
+            return getSwiftMacOS(version);
         }
         else if (process.platform === 'linux') {
-            return getSwiftLinux(version, platform);
+            return getSwiftLinux(version);
         }
         else {
             core.setFailed('Platform not supported');
@@ -4579,10 +4579,22 @@ function getSwift(version, platform) {
     });
 }
 exports.getSwift = getSwift;
-function getSwiftLinux(version, platform) {
+function getSwiftLinux(version) {
     return __awaiter(this, void 0, void 0, function* () {
         const swiftBranch = `swift-${version}-release`;
         const swiftVersion = `swift-${version}-RELEASE`;
+        // determine os release
+        let lsbReleaseStdOut = '';
+        const options = {
+            listeners: {
+                stdout: (data) => {
+                    lsbReleaseStdOut += data.toString();
+                }
+            }
+        };
+        yield exec.exec('lsb_release', ['-rs'], options);
+        const platform = `ubuntu${lsbReleaseStdOut.trim()}`;
+        // check cache
         let toolPath = tc.find('Swift', version, platform);
         if (toolPath) {
             core.debug(`Tool found in cache ${toolPath}`);
@@ -4601,11 +4613,12 @@ function getSwiftLinux(version, platform) {
         core.addPath(swiftBin);
     });
 }
-function getSwiftMacOS(version, platform) {
+function getSwiftMacOS(version) {
     return __awaiter(this, void 0, void 0, function* () {
         const swiftBranch = `swift-${version}-release`;
         const swiftVersion = `swift-${version}-RELEASE`;
-        let toolPath = tc.find('Swift', version, platform);
+        // check cache
+        let toolPath = tc.find('Swift', version, 'osx');
         if (toolPath) {
             core.debug(`Tool found in cache ${toolPath}`);
         }
@@ -4622,6 +4635,7 @@ function getSwiftMacOS(version, platform) {
             const swiftDirectory = yield tc.extractTar(swiftPayload, toolchain);
             toolPath = yield tc.cacheDir(swiftDirectory, 'Swift', version, 'osx');
         }
+        // install xcode toolchain
         let stdOut = '';
         const options = {
             listeners: {

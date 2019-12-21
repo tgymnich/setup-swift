@@ -4,22 +4,35 @@ import * as exec from '@actions/exec'
 import * as io from '@actions/io'
 import * as path from 'path'
 
-export async function getSwift(
-  version: string,
-  platform: string
-): Promise<void> {
+export async function getSwift(version: string): Promise<void> {
+  // determine os
   if (process.platform === 'darwin') {
-    return getSwiftMacOS(version, platform)
+    return getSwiftMacOS(version)
   } else if (process.platform === 'linux') {
-    return getSwiftLinux(version, platform)
+    return getSwiftLinux(version)
   } else {
     core.setFailed('Platform not supported')
   }
 }
 
-async function getSwiftLinux(version: string, platform: string): Promise<void> {
+async function getSwiftLinux(version: string): Promise<void> {
   const swiftBranch = `swift-${version}-release`
   const swiftVersion = `swift-${version}-RELEASE`
+
+  // determine os release
+  let lsbReleaseStdOut = ''
+
+  const options = {
+    listeners: {
+      stdout: (data: Buffer) => {
+        lsbReleaseStdOut += data.toString()
+      }
+    }
+  }
+
+  await exec.exec('lsb_release', ['-rs'], options)
+  const platform = `ubuntu${lsbReleaseStdOut.trim()}`
+  // check cache
   let toolPath = tc.find('Swift', version, platform)
 
   if (toolPath) {
@@ -44,11 +57,11 @@ async function getSwiftLinux(version: string, platform: string): Promise<void> {
   core.addPath(swiftBin)
 }
 
-async function getSwiftMacOS(version: string, platform: string): Promise<void> {
+async function getSwiftMacOS(version: string): Promise<void> {
   const swiftBranch = `swift-${version}-release`
   const swiftVersion = `swift-${version}-RELEASE`
-
-  let toolPath = tc.find('Swift', version, platform)
+  // check cache
+  let toolPath = tc.find('Swift', version, 'osx')
 
   if (toolPath) {
     core.debug(`Tool found in cache ${toolPath}`)
@@ -76,6 +89,7 @@ async function getSwiftMacOS(version: string, platform: string): Promise<void> {
     toolPath = await tc.cacheDir(swiftDirectory, 'Swift', version, 'osx')
   }
 
+  // install xcode toolchain
   let stdOut = ''
 
   const options = {

@@ -9,10 +9,6 @@ inputs:
     description: 'Swift version to use.'
     required: true
     default: '5.1.3'
-  platform:
-    description: 'Platform'
-    required: true
-    default: 'osx'
 runs:
   using: 'node12'
   main: 'dist/index.js'
