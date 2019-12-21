@@ -4567,11 +4567,14 @@ const io = __importStar(__webpack_require__(1));
 const path = __importStar(__webpack_require__(622));
 function getSwift(version, platform) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (platform === 'osx') {
+        if (process.platform === 'darwin') {
             return getSwiftMacOS(version, platform);
         }
-        else {
+        else if (process.platform === 'linux') {
             return getSwiftLinux(version, platform);
+        }
+        else {
+            core.setFailed('Platform not supported');
         }
     });
 }

@@ -8,10 +8,12 @@ export async function getSwift(
   version: string,
   platform: string
 ): Promise<void> {
-  if (platform === 'osx') {
+  if (process.platform === 'darwin') {
     return getSwiftMacOS(version, platform)
-  } else {
+  } else if (process.platform === 'linux') {
     return getSwiftLinux(version, platform)
+  } else {
+    core.setFailed('Platform not supported')
   }
 }
 

@@ -4,27 +4,34 @@ on: # rebuild any PRs and main branch changes
   push:
     branches:
       - master
-      - 'releases/*'
 
 jobs:
   build: # make sure build/ci work properly
-    runs-on: macOS-latest
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
     - run: |
         npm install
         npm run all
   test: # make sure the action works on a clean machine without building
-    runs-on: macOS-latest
+    needs: [build]
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
     - uses: ./
       with:
         version: '5.1.3'
-        platform: 'osx'
+        platform: ubuntu-18.04
     - run: swift --version
   publish:
-    runs-on: macOS-latest
+    needs: [build, test]
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
     - uses: TG908/publish-github-action@v1
