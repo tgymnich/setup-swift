@@ -112,5 +112,5 @@ async function getSwiftMacOS(version: string): Promise<void> {
     options
   )
 
-  core.exportVariable('TOOLCHAINS', stdOut)
+  core.exportVariable('TOOLCHAINS', stdOut.trim())
 }

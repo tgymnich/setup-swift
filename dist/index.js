@@ -4647,7 +4647,7 @@ function getSwiftMacOS(version) {
         yield exec.exec(`sudo mkdir -p /Library/Developer/Toolchains/${swiftVersion}.xctoolchain`);
         yield exec.exec(`sudo cp -R ${toolPath}/ /Library/Developer/Toolchains/${swiftVersion}.xctoolchain`);
         yield exec.exec(`/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" /Library/Developer/Toolchains/${swiftVersion}.xctoolchain/Info.plist`, [], options);
-        core.exportVariable('TOOLCHAINS', stdOut);
+        core.exportVariable('TOOLCHAINS', stdOut.trim());
     });
 }
 
