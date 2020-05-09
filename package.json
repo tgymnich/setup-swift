@@ -1,6 +1,6 @@
 {
   "name": "setup-swift-action",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "private": true,
   "description": "Setup a Swift environment",
   "main": "lib/main.js",
