@@ -9,7 +9,7 @@ For available versions check the release section on [swift.org](https://swift.or
 ```yaml
 steps:
 - uses: actions/checkout@latest
-- uses: TG908/setup-swift@v1
+- uses: tgymnich/setup-swift@v1
   with:
     version: '5.1.3'
 - run: swift build
