@@ -1,6 +1,6 @@
 {
   "name": "setup-swift-action",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "description": "Setup a Swift environment",
   "main": "lib/main.js",
@@ -25,7 +25,7 @@
   "author": "YourNameOrOrganization",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.2.0",
+    "@actions/core": "^1.2.6",
     "@actions/exec": "^1.0.2",
     "@actions/io": "^1.0.1",
     "@actions/tool-cache": "^1.1.2"
