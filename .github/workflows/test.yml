@@ -31,6 +31,8 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.ACTIONS_TOKEN }}
     - uses: tgymnich/publish-github-action@v1
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
